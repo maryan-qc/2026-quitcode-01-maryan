@@ -8,3 +8,5 @@ coverage/
 *.local
 .DS_Store
 nul
+app/data/
+repomix-output.xml

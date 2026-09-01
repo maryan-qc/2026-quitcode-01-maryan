@@ -17,4 +17,5 @@
 <!-- що було складно, де AI помилявся, цікаві спостереження про токени/вартість -->
 
 ---
-CodeRabbit зробить авто-рев'ю. Команди: `@coderabbitai review`, `@coderabbitai summary`, `@coderabbitai help`.
+CodeRabbit зробить рев'ю. Якщо воно не з'явилося за кілька хвилин — додайте коментар `@coderabbitai review`.
+Інші команди: `@coderabbitai summary`, `@coderabbitai help`.
