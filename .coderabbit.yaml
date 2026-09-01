@@ -1,18 +1,20 @@
 # yaml-language-server: $schema=https://coderabbit.ai/integrations/schema.v2.json
 #
-# CodeRabbit config — auto-review of QuitCode Workshop 1 homework PRs.
+# CodeRabbit config — review of QuitCode Workshop 1 homework PRs.
 # Workshop: "Сучасний стан агентної інженерії. Від no-code до AI-розробки".
+# Homework format: vibe-coding a small app with a design system.
 # Place this file in the ROOT of the practice repo.
 
 language: "uk-UA"
 tone_instructions: >
   Ментор воркшопу QuitCode. Відповідай українською, доброзичливо але вимогливо.
-  Що пропущено — поясни що і чому. Статуси: ✅ зроблено, ⚠️ частково, ❌ пропущено.
+  Це вайб-кодинг домашка — не вимагай тестів чи правил. Статуси: ✅ зроблено,
+  ⚠️ частково, ❌ пропущено.
 
 early_access: false
 
 reviews:
-  profile: "assertive"
+  profile: "chill"
   request_changes_workflow: false
   high_level_summary: true
   high_level_summary_placeholder: "@coderabbitai summary"
@@ -40,69 +42,45 @@ reviews:
   # ── File filters ──────────────────────────────────────────────
   path_filters:
     - "docs/**"
-    - ".cursorignore"
+    - "app/**"
     - ".cursor/**"
     - ".claude/**"
-    - ".agents/**"
-    - "app/AGENTS.md"
     - "AGENTS.md"
-    - "app/**"
     - "!**/node_modules/**"
     - "!**/dist/**"
     - "!**/build/**"
     - "!**/coverage/**"
-    - "!**/app/data/**"
+    - "!**/public/**"
     - "!*.lock"
     - "!**/package-lock.json"
     - "!**/yarn.lock"
     - "!**/*.min.js"
     - "!**/*.min.css"
+    - "!**/*.svg"
 
   # ── Path-specific review instructions ─────────────────────────
   path_instructions:
-    - path: ".cursorignore"
-      instructions: |
-        Task 1. Перевір: файл у корені (або в app/), ≥ 3 розумні патерни, що
-        прибирають з контексту node_modules/, builds (dist/build), coverage/,
-        lock-файли, .env. НЕ виключає core source. Порожній — ❌.
-        Для Claude Code еквівалент — `.claude/settings.json` (permissions.deny);
-        достатньо будь-якого з двох.
-
-    - path: "app/AGENTS.md"
-      instructions: |
-        Task 1 — конфіг проєкту. Перевір: стек, команди (dev/start/test),
-        3-5 конвенцій, 2-3 guardrails (зокрема про секрети/env). Специфічний
-        для створеного проєкту, не порожній шаблон.
-
-    - path: ".agents/skills/**"
-      instructions: |
-        Task 1 — встановлений Agent Skill. Перевір: є щонайменше один готовий
-        скіл із SKILL.md, доречний до стеку проєкту (напр.
-        typescript-best-practices). Достатньо встановити готовий — власні
-        скіли це Воркшоп 4.
-
     - path: "app/**"
       instructions: |
-        Task 2 — мігрована логіка Lead Intake. Звір діф зі специфікацією в
-        materials/workflow-description.md: валідація (name/email/message,
-        email-regex, 400 з errors), нормалізація (trim, lowercase email,
-        budget "$1,500" → 1500, source default "website"), сегментація
-        (hot якщо budget >= 1000 АБО терміновість у message; інакше cold),
-        дії (hot → нотифікація + реєстр; cold → лише реєстр). Перевір, що діф
-        додає vitest-тести на валідацію, нормалізацію бюджету і hot/cold.
-        Це статичне рев'ю дифу — do NOT attempt to execute the test suite.
+        Task 1–2 — вайб-закоджений застосунок. Це перша домашка курсу:
+        НЕ вимагай тестів, правил чи AGENTS.md. Перевір по diff:
+        (1) сучасний каркас (Vite або аналог) з командами dev і build;
+        (2) підключена дизайн-система: залежність на кшталт
+        @porsche-design-system/components-react (тоді має бути
+        PorscheDesignSystemProvider і P*-компоненти в JSX) або інша UI-система
+        (MUI, Ant, shadcn) чи власна бібліотека компонентів;
+        (3) застосунок щось осмислене робить: є форма/інтеракція і
+        відображення даних (за замовчуванням Lead Desk: форма заявки + список
+        з бейджами hot/cold), стан у React state/localStorage.
+        Підказуй м'яко: очевидні баги (зламаний стан, битий import) познач,
+        стилістичні дрібниці пропускай. Це статичне рев'ю — do NOT attempt
+        to run build or dev server.
 
-    - path: "docs/workflow.md"
+    - path: "docs/vibe-notes.md"
       instructions: |
-        Task 2 — опис флоу. Перевір: наведено acceptance criteria, описано
-        роботу в режимах (Plan → Agent), що було скориговано після рев'ю
-        плану, де агент помилявся. Має бути конкретика, не загальні слова.
-
-    - path: "docs/cost-analysis.md"
-      instructions: |
-        Task 3 — аналіз токенів/вартості. Перевір: РЕАЛЬНІ числа (токени за
-        задачу та/або розмір контексту з repomix), оцінка вартості
-        (токени × ціна моделі), мінімум 2 висновки про оптимізацію.
+        Task 3 — нотатки вайб-сесії. Перевір: що вийшло/не вийшло з промптів
+        (конкретика), де агент спіткнувся і як його розвернули, РЕАЛЬНІ числа
+        (кількість ітерацій, токени та/або вартість сесії), 2–3 спостереження.
         Без чисел — ⚠️/❌.
 
     - path: "docs/ab-experiment.md"
@@ -126,38 +104,38 @@ reviews:
 
     custom_checks:
       - mode: "warning"
-        name: "Task 1 — init + agent config"
+        name: "Task 1 — scaffold + design system"
         instructions: >
           Static review of the diff only — do NOT run any commands. Check the
-          PR adds: (1) a new small project under app/ (package.json with a
-          test script); (2) app/AGENTS.md with stack, commands, 3-5
-          conventions and 2-3 guardrails; (3) a context limit with 3+
-          patterns — a .cursorignore OR .claude/settings.json deny rules;
-          (4) at least one installed Agent Skill (e.g. under .agents/skills/
-          with a SKILL.md), relevant to the stack. PASS if all present and
-          substantive; FAIL if any is missing or empty.
+          PR adds a project under app/ with a package.json that has dev and
+          build scripts, AND a design system is wired up: either
+          @porsche-design-system/components-react (with
+          PorscheDesignSystemProvider used in the app) or another UI design
+          system (MUI, Ant Design, shadcn/ui, or a self-made component
+          library). PASS if both present; FAIL if app/ is missing or no
+          design system is used.
 
       - mode: "warning"
-        name: "Task 2 — workflow migration"
+        name: "Task 2 — vibe-coded app on DS"
         instructions: >
-          Static review of the diff only — do NOT attempt to execute the test
-          suite. Check the PR implements the Lead Intake logic in app/
-          matching materials/workflow-description.md (validation with 400 +
-          errors, normalization incl. budget parsing to integer, hot/cold
-          segmentation with budget >= 1000 or urgency keywords, hot →
-          notification + registry, cold → registry only), AND adds at least
-          3 vitest tests covering validation, budget normalization and
-          segmentation, AND docs/workflow.md describes Plan → Agent with
-          acceptance criteria and adjustments. PASS if logic + tests +
-          write-up are present and concrete; FAIL if any is missing.
+          Static review of the diff only — do NOT attempt to run the build.
+          Check the app implements a small meaningful application built
+          predominantly from design-system components: an input flow (form or
+          controls) plus a data display (list/table/cards) with some logic in
+          React state and/or localStorage. The default idea is "Lead Desk"
+          (lead form + list with hot/cold badges) but ANY app of similar
+          scope passes. FAIL only if the app is an untouched template or has
+          no interactive logic. Do not require tests or rules — this is
+          deliberate vibe-coding homework.
 
       - mode: "warning"
-        name: "Task 3 — token/cost analysis"
+        name: "Task 3 — vibe notes + real numbers"
         instructions: >
-          Check the PR includes docs/cost-analysis.md with REAL numbers
-          (token usage and/or repomix context size), a cost estimate, and at
-          least 2 optimization findings. PASS if present with numbers; FAIL
-          if missing or has no concrete numbers.
+          Check the PR includes docs/vibe-notes.md with: concrete notes on
+          what worked / what did not, where the agent stumbled, REAL numbers
+          (iteration count and token usage and/or session cost), and at least
+          2 takeaways. PASS if present with numbers; FAIL if missing or has
+          no concrete numbers.
 
       - mode: "warning"
         name: "Task 4 — prompt A/B (bonus)"

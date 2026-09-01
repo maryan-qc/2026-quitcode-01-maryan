@@ -1,4 +1,4 @@
-# QuitCode Workshop 1 — Homework (greenfield)
+# QuitCode Workshop 1 — Homework (vibe-coding)
 
 Starter repo for the first homework of the QuitCode **"Modern Development with
 Agentic AI"** course.
@@ -6,9 +6,11 @@ Agentic AI"** course.
 > Workshop 1: **Сучасний стан агентної інженерії. Від no-code до AI-розробки**
 > Автор: В'ячеслав Колдовський — Dev AI Consulting (dev-ai.dev)
 
-This is a **greenfield** exercise: you initialize your **own** small TypeScript
-project inside your fork, configure your agentic tooling, migrate a small n8n
-workflow to code with AI, and analyze the token/cost footprint. ~1–2 hours.
+The first homework is deliberately simple and fun: **vibe-code a small app**
+with an AI agent, using a grown-up design system for the UI (we recommend the
+open [Porsche Design System](https://designsystem.porsche.com/)) — then write
+down what worked and what it cost. ~1–1.5 hours. Rules, skills, tests and
+migration discipline come later in the course (workshops 3, 4, 8, 10).
 
 ## Quick start
 
@@ -16,6 +18,7 @@ workflow to code with AI, and analyze the token/cost footprint. ~1–2 hours.
 gh repo fork koldovsky/2026-quitcode-01-agentic-engineering-hw --clone
 cd 2026-quitcode-01-agentic-engineering-hw
 git checkout -b ws01/<github-username>
+npm create vite@latest app -- --template react-ts
 # follow docs/walkthrough.md
 gh pr create --title "WS1: <your name>" --fill
 ```
@@ -27,15 +30,14 @@ Full step-by-step instructions: [`docs/walkthrough.md`](docs/walkthrough.md).
 | File | Purpose |
 |---|---|
 | `docs/walkthrough.md` | Step-by-step: setup, Task 1–4, Definition of Done |
-| `materials/n8n-lead-intake.workflow.json` | Real n8n export of the training workflow you migrate in Task 2 |
-| `materials/workflow-description.md` | The workflow's business rules — your migration spec |
 | `.github/pull_request_template.md` | PR checklist (auto-applied) |
-| `.coderabbit.yaml` | CodeRabbit auto-review tuned to this homework's DoD |
+| `.coderabbit.yaml` | CodeRabbit review tuned to this homework's DoD |
 | `AGENTS.md` | Baseline guidance for your agentic tool in this repo |
 
-You create everything else (`app/`, `AGENTS.md` inside it, `docs/*`) yourself —
-that's the homework. This repo is also used for the **live demo** during the
-workshop; the open PR `ws01/koldovsky-demo` is the reference solution.
+You create everything else (`app/`, `docs/vibe-notes.md`, …) yourself — that's
+the homework. This repo is also used for the **live demo** during the workshop;
+the open PR `ws01/koldovsky-demo` is the reference solution ("Lead Desk" on
+Porsche Design System).
 
 ## Tools
 
