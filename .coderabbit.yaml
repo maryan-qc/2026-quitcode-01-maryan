@@ -1,0 +1,170 @@
+# yaml-language-server: $schema=https://coderabbit.ai/integrations/schema.v2.json
+#
+# CodeRabbit config — auto-review of QuitCode Workshop 1 homework PRs.
+# Workshop: "Сучасний стан агентної інженерії. Від no-code до AI-розробки".
+# Place this file in the ROOT of the practice repo.
+
+language: "uk-UA"
+tone_instructions: >
+  Ментор воркшопу QuitCode. Відповідай українською, доброзичливо але вимогливо.
+  Що пропущено — поясни що і чому. Статуси: ✅ зроблено, ⚠️ частково, ❌ пропущено.
+
+early_access: false
+
+reviews:
+  profile: "assertive"
+  request_changes_workflow: false
+  high_level_summary: true
+  high_level_summary_placeholder: "@coderabbitai summary"
+  poem: false
+  review_status: true
+  collapse_walkthrough: false
+  changed_files_summary: true
+  sequence_diagrams: false
+
+  auto_review:
+    enabled: true
+    drafts: true
+    auto_incremental_review: true
+    auto_pause_after_reviewed_commits: 0
+    base_branches:
+      - ".*"
+    ignore_title_keywords:
+      - "WIP"
+      - "[skip review]"
+    ignore_usernames:
+      - "dependabot[bot]"
+      - "renovate[bot]"
+      - "github-actions[bot]"
+
+  # ── File filters ──────────────────────────────────────────────
+  path_filters:
+    - "docs/**"
+    - ".cursorignore"
+    - ".cursor/**"
+    - ".claude/**"
+    - ".agents/**"
+    - "app/AGENTS.md"
+    - "AGENTS.md"
+    - "app/**"
+    - "!**/node_modules/**"
+    - "!**/dist/**"
+    - "!**/build/**"
+    - "!**/coverage/**"
+    - "!**/app/data/**"
+    - "!*.lock"
+    - "!**/package-lock.json"
+    - "!**/yarn.lock"
+    - "!**/*.min.js"
+    - "!**/*.min.css"
+
+  # ── Path-specific review instructions ─────────────────────────
+  path_instructions:
+    - path: ".cursorignore"
+      instructions: |
+        Task 1. Перевір: файл у корені (або в app/), ≥ 3 розумні патерни, що
+        прибирають з контексту node_modules/, builds (dist/build), coverage/,
+        lock-файли, .env. НЕ виключає core source. Порожній — ❌.
+        Для Claude Code еквівалент — `.claude/settings.json` (permissions.deny);
+        достатньо будь-якого з двох.
+
+    - path: "app/AGENTS.md"
+      instructions: |
+        Task 1 — конфіг проєкту. Перевір: стек, команди (dev/start/test),
+        3-5 конвенцій, 2-3 guardrails (зокрема про секрети/env). Специфічний
+        для створеного проєкту, не порожній шаблон.
+
+    - path: ".agents/skills/**"
+      instructions: |
+        Task 1 — встановлений Agent Skill. Перевір: є щонайменше один готовий
+        скіл із SKILL.md, доречний до стеку проєкту (напр.
+        typescript-best-practices). Достатньо встановити готовий — власні
+        скіли це Воркшоп 4.
+
+    - path: "app/**"
+      instructions: |
+        Task 2 — мігрована логіка Lead Intake. Звір діф зі специфікацією в
+        materials/workflow-description.md: валідація (name/email/message,
+        email-regex, 400 з errors), нормалізація (trim, lowercase email,
+        budget "$1,500" → 1500, source default "website"), сегментація
+        (hot якщо budget >= 1000 АБО терміновість у message; інакше cold),
+        дії (hot → нотифікація + реєстр; cold → лише реєстр). Перевір, що діф
+        додає vitest-тести на валідацію, нормалізацію бюджету і hot/cold.
+        Це статичне рев'ю дифу — do NOT attempt to execute the test suite.
+
+    - path: "docs/workflow.md"
+      instructions: |
+        Task 2 — опис флоу. Перевір: наведено acceptance criteria, описано
+        роботу в режимах (Plan → Agent), що було скориговано після рев'ю
+        плану, де агент помилявся. Має бути конкретика, не загальні слова.
+
+    - path: "docs/cost-analysis.md"
+      instructions: |
+        Task 3 — аналіз токенів/вартості. Перевір: РЕАЛЬНІ числа (токени за
+        задачу та/або розмір контексту з repomix), оцінка вартості
+        (токени × ціна моделі), мінімум 2 висновки про оптимізацію.
+        Без чисел — ⚠️/❌.
+
+    - path: "docs/ab-experiment.md"
+      instructions: |
+        Task 4 (bonus) — A/B промптів. Перевір: наведено ОБИДВА промпти
+        (базовий і структурований) + порівняння (якість/ітерації/токени) +
+        короткий висновок. Необов'язкове; відсутність не помилка.
+
+  # ── Pre-merge checks (grading) ────────────────────────────────
+  pre_merge_checks:
+    docstrings:
+      mode: "off"
+
+    title:
+      mode: "warning"
+      requirements: >
+        PR title should follow: "WS1: <participant-name>".
+
+    description:
+      mode: "warning"
+
+    custom_checks:
+      - mode: "warning"
+        name: "Task 1 — init + agent config"
+        instructions: >
+          Static review of the diff only — do NOT run any commands. Check the
+          PR adds: (1) a new small project under app/ (package.json with a
+          test script); (2) app/AGENTS.md with stack, commands, 3-5
+          conventions and 2-3 guardrails; (3) a context limit with 3+
+          patterns — a .cursorignore OR .claude/settings.json deny rules;
+          (4) at least one installed Agent Skill (e.g. under .agents/skills/
+          with a SKILL.md), relevant to the stack. PASS if all present and
+          substantive; FAIL if any is missing or empty.
+
+      - mode: "warning"
+        name: "Task 2 — workflow migration"
+        instructions: >
+          Static review of the diff only — do NOT attempt to execute the test
+          suite. Check the PR implements the Lead Intake logic in app/
+          matching materials/workflow-description.md (validation with 400 +
+          errors, normalization incl. budget parsing to integer, hot/cold
+          segmentation with budget >= 1000 or urgency keywords, hot →
+          notification + registry, cold → registry only), AND adds at least
+          3 vitest tests covering validation, budget normalization and
+          segmentation, AND docs/workflow.md describes Plan → Agent with
+          acceptance criteria and adjustments. PASS if logic + tests +
+          write-up are present and concrete; FAIL if any is missing.
+
+      - mode: "warning"
+        name: "Task 3 — token/cost analysis"
+        instructions: >
+          Check the PR includes docs/cost-analysis.md with REAL numbers
+          (token usage and/or repomix context size), a cost estimate, and at
+          least 2 optimization findings. PASS if present with numbers; FAIL
+          if missing or has no concrete numbers.
+
+      - mode: "warning"
+        name: "Task 4 — prompt A/B (bonus)"
+        instructions: >
+          Optional. If docs/ab-experiment.md exists, check it contains both
+          prompts (basic and structured) and a short comparison/conclusion.
+          Absence is NOT a failure.
+
+chat:
+  auto_reply: true
