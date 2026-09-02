@@ -3,6 +3,8 @@
 Гра в хрестики-нулики на **Next.js 16 (App Router)** та
 **[Porsche Design System](https://designsystem.porsche.com/) v4**.
 
+**Живе демо:** https://maryan-qc.github.io/2026-quitcode-01-maryan/
+
 ## Запуск
 
 ```bash
@@ -42,3 +44,14 @@ npm run build   # продакшн-збірка
 - `next.config.ts` вимикає поліфіл `light-dark()` у Lightning CSS
   (`lightningCssFeatures.exclude`), бо на ньому ламається палітра PDS.
 - Теми перемикаються лише класом `.scheme-*` — пропа `theme` в PDS v4 немає.
+
+## Деплой на GitHub Pages
+
+```bash
+npm run build:pages
+```
+
+Збирає статику в `app/out/` з `basePath=/2026-quitcode-01-maryan` (вмикається
+змінною `GITHUB_PAGES=true`, локальні `dev`/`build` лишаються на корені) і додає
+`.nojekyll`, щоб Pages не ігнорував теку `_next`. Вміст `out/` публікується
+в гілку `gh-pages`, з якої й роздається сайт.
