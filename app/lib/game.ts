@@ -36,6 +36,10 @@ export function getResult(board: Board): GameResult {
     : { status: "playing", winner: null, line: null };
 }
 
+export function opponentOf(player: Player): Player {
+  return player === "X" ? "O" : "X";
+}
+
 export type Scores = Record<Player | "draws", number>;
 
 export const EMPTY_SCORES: Scores = { X: 0, O: 0, draws: 0 };
@@ -44,16 +48,32 @@ export type GameState = {
   board: Board;
   xIsNext: boolean;
   scores: Scores;
+  /** Seconds allowed per move. 0 turns the clock off. */
+  turnSeconds: number;
+  /** Bumped whenever a new turn begins, so clients can restart the countdown. */
+  turnId: number;
+  /** Set when the round ended because this player ran out of time. */
+  timedOut: Player | null;
 };
 
-export const INITIAL_STATE: GameState = {
-  board: EMPTY_BOARD,
-  xIsNext: true,
-  scores: EMPTY_SCORES,
-};
+export function createGameState(turnSeconds = 0): GameState {
+  return {
+    board: EMPTY_BOARD,
+    xIsNext: true,
+    scores: EMPTY_SCORES,
+    turnSeconds,
+    turnId: 0,
+    timedOut: null,
+  };
+}
 
 export function currentPlayer(state: GameState): Player {
   return state.xIsNext ? "X" : "O";
+}
+
+/** A round ends on a line, on a full board, or on the clock. */
+export function isRoundOver(state: GameState): boolean {
+  return state.timedOut !== null || getResult(state.board).status !== "playing";
 }
 
 /**
@@ -67,7 +87,7 @@ export function applyMove(state: GameState, index: number): GameState {
     index >= 0 &&
     index < 9 &&
     state.board[index] === null &&
-    getResult(state.board).status === "playing";
+    !isRoundOver(state);
 
   if (!isPlayable) {
     return state;
@@ -84,15 +104,42 @@ export function applyMove(state: GameState, index: number): GameState {
         ? { ...state.scores, draws: state.scores.draws + 1 }
         : state.scores;
 
-  return { board, xIsNext: !state.xIsNext, scores };
+  return { ...state, board, xIsNext: !state.xIsNext, scores, turnId: state.turnId + 1 };
 }
 
-/** Clears the board, keeping the score. The loser of the round opens the next. */
-export function startNextRound(state: GameState): GameState {
+/** The player on the clock ran out of time and forfeits the round. */
+export function applyTimeout(state: GameState): GameState {
+  if (state.turnSeconds <= 0 || isRoundOver(state)) {
+    return state;
+  }
+
+  const loser = currentPlayer(state);
+  const winner = opponentOf(loser);
+
+  return {
+    ...state,
+    scores: { ...state.scores, [winner]: state.scores[winner] + 1 },
+    timedOut: loser,
+    turnId: state.turnId + 1,
+  };
+}
+
+/**
+ * Clears the board, keeping the score. The loser of the round opens the next
+ * one; a draw keeps the previous order. `turnSeconds` is re-read here, so a
+ * settings change takes effect from the next round.
+ */
+export function startNextRound(state: GameState, turnSeconds = state.turnSeconds): GameState {
   const result = getResult(state.board);
+  const loser: Player | null =
+    state.timedOut ?? (result.status === "won" ? opponentOf(result.winner) : null);
+
   return {
     board: EMPTY_BOARD,
-    xIsNext: result.status === "won" ? result.winner === "O" : state.xIsNext,
+    xIsNext: loser ? loser === "X" : state.xIsNext,
     scores: state.scores,
+    turnSeconds,
+    turnId: state.turnId + 1,
+    timedOut: null,
   };
 }

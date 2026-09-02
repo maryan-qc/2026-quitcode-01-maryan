@@ -12,28 +12,45 @@ import {
   PText,
 } from "@porsche-design-system/components-react/ssr";
 import {
-  INITIAL_STATE,
   applyMove,
+  applyTimeout,
+  createGameState,
   currentPlayer,
   getResult,
+  isRoundOver,
+  opponentOf,
   startNextRound,
   type GameState,
+  type Player,
 } from "@/lib/game";
 import { inviteUrlForRoom, isValidRoomCode, normalizeRoomCode } from "@/lib/room";
+import { ALL_THEME_CLASSES, THEME_CLASSES, effectiveTurnSeconds } from "@/lib/settings";
 import { Board } from "./board";
 import { Scoreboard } from "./scoreboard";
+import { SettingsPanel } from "./settings-panel";
+import { TurnTimer } from "./turn-timer";
 import { useOnlineGame } from "./use-online-game";
 import { useRoomInvite } from "./use-room-invite";
+import { useSettings } from "./use-settings";
 import styles from "./tic-tac-toe.module.css";
 
 type Mode = "menu" | "local" | "online";
 
 export function TicTacToe() {
-  const [mode, setMode] = useState<Mode>("menu");
   const invite = useRoomInvite();
-  // An invite link opens straight into the online screen, until the player
-  // deliberately navigates somewhere else.
-  const activeMode: Mode = mode === "menu" && invite ? "online" : mode;
+  const settings = useSettings();
+  // `null` means the player has not navigated yet, so an invite link decides
+  // the opening screen. Once they pick anything, their choice wins — otherwise
+  // `?room=` in the URL would drag them back to the online screen forever.
+  const [mode, setMode] = useState<Mode | null>(null);
+  const activeMode: Mode = mode ?? (invite ? "online" : "menu");
+
+  // Theming in PDS v4 is a single class on the root element.
+  useEffect(() => {
+    const root = document.documentElement;
+    root.classList.remove(...ALL_THEME_CLASSES);
+    root.classList.add(THEME_CLASSES[settings.theme]);
+  }, [settings.theme]);
 
   return (
     <div className={styles.shell}>
@@ -48,68 +65,126 @@ export function TicTacToe() {
 
       {activeMode === "menu" && <Menu onPick={setMode} />}
       {activeMode === "local" && <LocalGame onExit={() => setMode("menu")} />}
-      {activeMode === "online" && <OnlineGame onExit={() => setMode("menu")} />}
+      {activeMode === "online" && (
+        // The invite is consumed only on the very first screen.
+        <OnlineGame initialCode={mode === null ? invite : null} onExit={() => setMode("menu")} />
+      )}
     </div>
   );
 }
 
 function Menu({ onPick }: { onPick: (mode: Mode) => void }) {
   return (
-    <div className={styles.menu}>
-      <PButton type="button" icon="user-group" onClick={() => onPick("local")}>
-        Грати вдвох на цьому пристрої
-      </PButton>
-      <PButton type="button" variant="secondary" icon="wifi" onClick={() => onPick("online")}>
-        Грати онлайн із суперником
-      </PButton>
-    </div>
+    <>
+      <div className={styles.menu}>
+        <PButton type="button" icon="user-group" onClick={() => onPick("local")}>
+          Грати вдвох на цьому пристрої
+        </PButton>
+        <PButton type="button" variant="secondary" icon="wifi" onClick={() => onPick("online")}>
+          Грати онлайн із суперником
+        </PButton>
+      </div>
+
+      <PDivider color="contrast-low" />
+      <SettingsPanel />
+    </>
   );
+}
+
+type OutcomeTone = "success" | "error" | "info";
+
+type Outcome = { state: OutcomeTone; heading: string; description: string };
+
+/** Banner text for a finished round, from the point of view of `you`. */
+function roundOutcome(state: GameState, you: Player | null): Outcome {
+  const result = getResult(state.board);
+
+  if (state.timedOut) {
+    const winner = opponentOf(state.timedOut);
+    return {
+      state: you === null ? "info" : you === winner ? "success" : "error",
+      heading: `Час вийшов у ${state.timedOut}`,
+      description:
+        you === null
+          ? `Раунд зараховано ${winner}.`
+          : you === winner
+            ? "Суперник не встиг зробити хід. Раунд ваш."
+            : "Ви не встигли зробити хід. Раунд за суперником.",
+    };
+  }
+
+  if (result.status === "draw") {
+    return {
+      state: "info",
+      heading: "Нічия",
+      description: "Поле заповнене, переможця немає.",
+    };
+  }
+
+  const winner = result.winner as Player;
+  return {
+    state: you === null || you === winner ? "success" : "error",
+    heading: you === null ? `${winner} виграв раунд!` : you === winner ? "Ви виграли раунд!" : "Раунд за суперником",
+    description: "Лінію зібрано. Рахунок збережено.",
+  };
 }
 
 /* ---------------------------------------------------------------- local --- */
 
 function LocalGame({ onExit }: { onExit: () => void }) {
-  const [state, setState] = useState<GameState>(INITIAL_STATE);
+  const settings = useSettings();
+  const turnSeconds = effectiveTurnSeconds(settings);
+  const [state, setState] = useState<GameState>(() => createGameState(turnSeconds));
+
   const result = useMemo(() => getResult(state.board), [state.board]);
-  const isOver = result.status !== "playing";
+  const isOver = isRoundOver(state);
+  const turn = currentPlayer(state);
+  const outcome = isOver ? roundOutcome(state, null) : null;
 
   return (
     <>
       <div className={styles.statusBar}>
         {isOver ? (
-          <PTag variant={result.status === "won" ? "success" : "info"} icon="flag">
-            {result.status === "won" ? `Переміг ${result.winner}` : "Нічия"}
+          <PTag variant={state.timedOut ? "warning" : result.status === "won" ? "success" : "info"} icon="flag">
+            {state.timedOut
+              ? `Час вийшов у ${state.timedOut}`
+              : result.status === "won"
+                ? `Переміг ${result.winner}`
+                : "Нічия"}
           </PTag>
         ) : (
-          <PTag variant={currentPlayer(state) === "X" ? "info" : "warning"}>
-            Ходить {currentPlayer(state)}
-          </PTag>
+          <PTag variant={turn === "X" ? "info" : "warning"}>Ходить {turn}</PTag>
         )}
         <PText size="xs" color="contrast-medium">
           Ходів зроблено: {state.board.filter(Boolean).length} / 9
         </PText>
       </div>
 
+      {state.turnSeconds > 0 && !isOver && (
+        <TurnTimer
+          key={state.turnId}
+          seconds={state.turnSeconds}
+          label={`Час на хід — ${turn}`}
+          onExpire={() => setState((prev) => applyTimeout(prev))}
+        />
+      )}
+
       <Board
         board={state.board}
         result={result}
         locked={isOver}
-        onPlay={(index) => setState(applyMove(state, index))}
+        onPlay={(index) => setState((prev) => applyMove(prev, index))}
       />
 
-      {isOver && (
+      {outcome && (
         <PInlineNotification
-          state={result.status === "won" ? "success" : "info"}
-          heading={result.status === "won" ? `${result.winner} виграв раунд!` : "Нічия"}
-          description={
-            result.status === "won"
-              ? "Лінію зібрано. Починаємо наступний раунд?"
-              : "Поле заповнене, переможця немає. Спробуйте ще раз."
-          }
+          state={outcome.state}
+          heading={outcome.heading}
+          description={outcome.description}
           dismissButton={false}
           actionLabel="Новий раунд"
           actionIcon="refresh"
-          onAction={() => setState(startNextRound(state))}
+          onAction={() => setState((prev) => startNextRound(prev, turnSeconds))}
         />
       )}
 
@@ -117,14 +192,18 @@ function LocalGame({ onExit }: { onExit: () => void }) {
       <Scoreboard scores={state.scores} />
 
       <div className={styles.actions}>
-        <PButton type="button" icon="refresh" onClick={() => setState(startNextRound(state))}>
+        <PButton
+          type="button"
+          icon="refresh"
+          onClick={() => setState((prev) => startNextRound(prev, turnSeconds))}
+        >
           Новий раунд
         </PButton>
         <PButton
           type="button"
           variant="secondary"
           icon="delete"
-          onClick={() => setState(INITIAL_STATE)}
+          onClick={() => setState(createGameState(turnSeconds))}
         >
           Скинути рахунок
         </PButton>
@@ -138,11 +217,13 @@ function LocalGame({ onExit }: { onExit: () => void }) {
 
 /* --------------------------------------------------------------- online --- */
 
-function OnlineGame({ onExit }: { onExit: () => void }) {
+type OnlineGameProps = { initialCode: string | null; onExit: () => void };
+
+function OnlineGame({ initialCode, onExit }: OnlineGameProps) {
   const game = useOnlineGame();
 
   if (game.phase === "idle" || game.phase === "error") {
-    return <OnlineLobby game={game} onExit={onExit} />;
+    return <OnlineLobby game={game} initialCode={initialCode} onExit={onExit} />;
   }
   if (game.phase === "hosting" || game.phase === "joining") {
     return <OnlineWaiting game={game} onExit={onExit} />;
@@ -152,26 +233,30 @@ function OnlineGame({ onExit }: { onExit: () => void }) {
 
 type OnlineProps = { game: ReturnType<typeof useOnlineGame>; onExit: () => void };
 
-function OnlineLobby({ game, onExit }: OnlineProps) {
+function OnlineLobby({ game, initialCode, onExit }: OnlineProps & { initialCode: string | null }) {
   const [input, setInput] = useState("");
-  const invite = useRoomInvite();
   const { join, phase } = game;
 
   // Dial the host automatically when arriving from an invite link. Opening a
   // connection is an external side effect — but never retry after an error,
-  // or a failed link would loop forever.
+  // or a dead link would loop forever.
   useEffect(() => {
-    if (invite && phase === "idle") {
-      join(invite);
+    if (initialCode && phase === "idle") {
+      join(initialCode);
     }
-  }, [invite, join, phase]);
+  }, [initialCode, join, phase]);
 
   const code = normalizeRoomCode(input);
 
   return (
     <>
       {game.error && (
-        <PInlineNotification state="error" heading="Не вдалося" description={game.error} dismissButton={false} />
+        <PInlineNotification
+          state="error"
+          heading="Не вдалося"
+          description={game.error}
+          dismissButton={false}
+        />
       )}
 
       <PButton type="button" icon="add" onClick={game.host}>
@@ -289,18 +374,18 @@ function OnlineWaiting({ game, onExit }: OnlineProps) {
 }
 
 function OnlineBoard({ game, onExit }: OnlineProps) {
-  const result = useMemo(() => getResult(game.state.board), [game.state.board]);
-  const isOver = result.status !== "playing";
-  const turn = currentPlayer(game.state);
-  const isMyTurn = turn === game.role;
-  const youWon = result.status === "won" && result.winner === game.role;
+  const { state } = game;
+  const result = useMemo(() => getResult(state.board), [state.board]);
+  const isOver = isRoundOver(state);
+  const isMyTurn = currentPlayer(state) === game.role;
+  const outcome = isOver ? roundOutcome(state, game.role) : null;
 
   return (
     <>
       <div className={styles.statusBar}>
         {isOver ? (
-          <PTag variant={youWon ? "success" : result.status === "draw" ? "info" : "error"} icon="flag">
-            {result.status === "draw" ? "Нічия" : youWon ? "Ви перемогли" : "Ви програли"}
+          <PTag variant={outcome?.state === "success" ? "success" : outcome?.state === "error" ? "error" : "info"} icon="flag">
+            {outcome?.heading}
           </PTag>
         ) : (
           <PTag variant={isMyTurn ? "success" : "secondary"}>
@@ -312,8 +397,18 @@ function OnlineBoard({ game, onExit }: OnlineProps) {
         </PTag>
       </div>
 
+      {state.turnSeconds > 0 && !isOver && game.opponentPresent && (
+        <TurnTimer
+          key={state.turnId}
+          seconds={state.turnSeconds}
+          label={isMyTurn ? "Ваш час" : "Час суперника"}
+          // Only the host arbitrates; the guest's timer is display-only.
+          onExpire={game.role === "X" ? game.timeout : undefined}
+        />
+      )}
+
       <Board
-        board={game.state.board}
+        board={state.board}
         result={result}
         locked={isOver || !isMyTurn || !game.opponentPresent}
         onPlay={game.play}
@@ -328,13 +423,11 @@ function OnlineBoard({ game, onExit }: OnlineProps) {
         />
       )}
 
-      {isOver && game.opponentPresent && (
+      {outcome && game.opponentPresent && (
         <PInlineNotification
-          state={youWon ? "success" : result.status === "draw" ? "info" : "error"}
-          heading={
-            result.status === "draw" ? "Нічия" : youWon ? "Ви виграли раунд!" : "Раунд за суперником"
-          }
-          description="Рахунок збережено. Готові до реваншу?"
+          state={outcome.state}
+          heading={outcome.heading}
+          description={`${outcome.description} Готові до реваншу?`}
           dismissButton={false}
           actionLabel="Ще раз"
           actionIcon="refresh"
@@ -343,7 +436,7 @@ function OnlineBoard({ game, onExit }: OnlineProps) {
       )}
 
       <PDivider color="contrast-low" />
-      <Scoreboard scores={game.state.scores} />
+      <Scoreboard scores={state.scores} />
 
       <div className={styles.actions}>
         <PButton

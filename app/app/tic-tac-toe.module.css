@@ -163,3 +163,47 @@
   border-radius: var(--p-radius-lg);
   user-select: all;
 }
+
+.settings {
+  display: flex;
+  flex-direction: column;
+  gap: var(--p-spacing-static-md);
+}
+
+.timer {
+  display: flex;
+  flex-direction: column;
+  gap: var(--p-spacing-static-xs);
+}
+
+.timerHead {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--p-spacing-static-sm);
+}
+
+.timerTrack {
+  block-size: var(--p-spacing-static-sm);
+  background: var(--p-color-surface);
+  border-radius: var(--p-radius-full);
+  overflow: hidden;
+}
+
+.timerFill {
+  block-size: 100%;
+  background: var(--p-color-primary);
+  border-radius: var(--p-radius-full);
+  /* Matches the 100 ms tick, so the bar slides instead of stepping. */
+  transition: inline-size 100ms linear;
+}
+
+.timerFillUrgent {
+  background: var(--p-color-error);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .timerFill {
+    transition: none;
+  }
+}

@@ -2,7 +2,16 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import type { DataConnection, Peer } from "peerjs";
-import { INITIAL_STATE, applyMove, startNextRound, type GameState, type Player } from "@/lib/game";
+import {
+  applyMove,
+  applyTimeout,
+  createGameState,
+  startNextRound,
+  type GameState,
+  type Player,
+} from "@/lib/game";
+import { effectiveTurnSeconds } from "@/lib/settings";
+import { useSettings } from "./use-settings";
 import {
   createRoomCode,
   parseMessage,
@@ -30,6 +39,8 @@ export type OnlineGame = {
   leave: () => void;
   play: (index: number) => void;
   rematch: () => void;
+  /** Host-only: the player on the clock ran out of time. */
+  timeout: () => void;
 };
 
 const ERROR_MESSAGES: Record<string, string> = {
@@ -47,10 +58,11 @@ function describeError(type: string): string {
 }
 
 export function useOnlineGame(): OnlineGame {
+  const settings = useSettings();
   const [phase, setPhase] = useState<OnlinePhase>("idle");
   const [code, setCode] = useState<string | null>(null);
   const [role, setRole] = useState<Player | null>(null);
-  const [state, setState] = useState<GameState>(INITIAL_STATE);
+  const [state, setState] = useState<GameState>(() => createGameState());
   const [opponentPresent, setOpponentPresent] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -59,7 +71,13 @@ export function useOnlineGame(): OnlineGame {
   const roleRef = useRef<Player | null>(null);
   // The host owns the authoritative state; keep it out of the render cycle so
   // message handlers registered once always read the latest value.
-  const stateRef = useRef<GameState>(INITIAL_STATE);
+  const stateRef = useRef<GameState>(createGameState());
+  // The host's own settings drive the clock; read at round start, not per render.
+  const turnSecondsRef = useRef(effectiveTurnSeconds(settings));
+
+  useEffect(() => {
+    turnSecondsRef.current = effectiveTurnSeconds(settings);
+  }, [settings]);
 
   const commit = useCallback((next: GameState) => {
     stateRef.current = next;
@@ -117,7 +135,7 @@ export function useOnlineGame(): OnlineGame {
             }
             broadcastState(applyMove(stateRef.current, message.index));
           } else if (message.t === "rematch") {
-            broadcastState(startNextRound(stateRef.current));
+            broadcastState(startNextRound(stateRef.current, turnSecondsRef.current));
           }
         } else if (message.t === "state") {
           commit(message.state);
@@ -157,7 +175,7 @@ export function useOnlineGame(): OnlineGame {
     teardown();
     setError(null);
     setOpponentPresent(false);
-    commit(INITIAL_STATE);
+    commit(createGameState(turnSecondsRef.current));
 
     const roomCode = createRoomCode();
     setCode(roomCode);
@@ -182,7 +200,7 @@ export function useOnlineGame(): OnlineGame {
       teardown();
       setError(null);
       setOpponentPresent(false);
-      commit(INITIAL_STATE);
+      commit(createGameState());
 
       setCode(roomCode);
       setRole("O");
@@ -205,7 +223,7 @@ export function useOnlineGame(): OnlineGame {
     setRole(null);
     setOpponentPresent(false);
     setError(null);
-    commit(INITIAL_STATE);
+    commit(createGameState());
   }, [commit, teardown]);
 
   const play = useCallback(
@@ -229,11 +247,32 @@ export function useOnlineGame(): OnlineGame {
 
   const rematch = useCallback(() => {
     if (roleRef.current === "X") {
-      broadcastState(startNextRound(stateRef.current));
+      broadcastState(startNextRound(stateRef.current, turnSecondsRef.current));
     } else {
       send({ t: "rematch" });
     }
   }, [broadcastState, send]);
 
-  return { phase, code, role, state, opponentPresent, error, host, join, leave, play, rematch };
+  // Only the host arbitrates the clock — otherwise two drifting timers could
+  // each declare a different loser.
+  const timeout = useCallback(() => {
+    if (roleRef.current === "X") {
+      broadcastState(applyTimeout(stateRef.current));
+    }
+  }, [broadcastState]);
+
+  return {
+    phase,
+    code,
+    role,
+    state,
+    opponentPresent,
+    error,
+    host,
+    join,
+    leave,
+    play,
+    rematch,
+    timeout,
+  };
 }
