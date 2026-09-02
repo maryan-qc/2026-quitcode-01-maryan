@@ -118,3 +118,48 @@
     transform: none;
   }
 }
+
+.menu {
+  display: flex;
+  flex-direction: column;
+  gap: var(--p-spacing-static-sm);
+}
+
+.joinForm {
+  display: flex;
+  flex-direction: column;
+  gap: var(--p-spacing-static-md);
+}
+
+.waiting {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--p-spacing-static-md);
+}
+
+.waiting > * {
+  width: 100%;
+}
+
+.waitingStatus {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--p-spacing-static-sm);
+}
+
+/* The room code is the one thing the host has to read aloud or copy — give it
+   room to breathe and lock the glyph width so it stays readable. */
+.roomCode {
+  display: block;
+  padding: var(--p-spacing-static-md);
+  text-align: center;
+  font-size: var(--p-typescale-2xl);
+  font-weight: var(--p-font-weight-bold);
+  letter-spacing: 0.2em;
+  font-variant-numeric: tabular-nums;
+  background: var(--p-color-surface);
+  border-radius: var(--p-radius-lg);
+  user-select: all;
+}
