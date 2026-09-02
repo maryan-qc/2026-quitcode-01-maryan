@@ -1,0 +1,16 @@
+/* Porsche Design System global styles: CSS variables, font-face, normalize
+   and the .scheme-* color-scheme utilities. Required — components read all of
+   their colors, fonts and spacing from here. */
+@import "@porsche-design-system/components-react/index.css";
+
+/* Hide not-yet-upgraded custom elements to avoid a flash of unstyled content.
+   Elements server-rendered as Declarative Shadow DOM carry [data-ssr]. */
+:not(:defined, [data-ssr]) {
+  visibility: hidden;
+}
+
+body {
+  min-height: 100dvh;
+  background: var(--p-color-canvas);
+  color: var(--p-color-primary);
+}

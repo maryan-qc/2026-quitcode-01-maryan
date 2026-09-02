@@ -1,0 +1,209 @@
+/* Layout and the board cells — built on Porsche Design System design tokens so
+   they share the exact palette, spacing and typography as the PDS components. */
+
+.page {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--p-spacing-fluid-md);
+  padding: var(--p-spacing-fluid-lg) var(--p-spacing-fluid-md);
+}
+
+.shell {
+  display: flex;
+  flex-direction: column;
+  gap: var(--p-spacing-fluid-md);
+  width: 100%;
+  max-width: 30rem;
+}
+
+.header {
+  display: flex;
+  flex-direction: column;
+  gap: var(--p-spacing-static-xs);
+}
+
+.statusBar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--p-spacing-static-md);
+  flex-wrap: wrap;
+}
+
+.board {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: var(--p-spacing-static-sm);
+}
+
+.cell {
+  aspect-ratio: 1;
+  display: grid;
+  place-items: center;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  font-family: inherit;
+  font-size: var(--p-typescale-4xl);
+  font-weight: var(--p-font-weight-semibold);
+  line-height: 1;
+  color: var(--p-color-primary);
+  background: var(--p-color-surface);
+  border-radius: var(--p-radius-lg);
+  cursor: pointer;
+  transition:
+    background var(--p-duration-sm) var(--p-ease-in-out),
+    transform var(--p-duration-sm) var(--p-ease-in-out);
+}
+
+.cell:hover:not(:disabled) {
+  background: var(--p-color-frosted-soft);
+}
+
+.cell:active:not(:disabled) {
+  transform: scale(0.96);
+}
+
+.cell:focus-visible {
+  outline: var(--p-spacing-static-2xs) solid var(--p-color-focus);
+  outline-offset: var(--p-spacing-static-xs);
+}
+
+.cell:disabled {
+  cursor: default;
+}
+
+/* Marks keep full contrast even on a disabled (already played) cell. */
+.markX {
+  color: var(--p-color-info);
+}
+
+.markO {
+  color: var(--p-color-warning);
+}
+
+.winning {
+  background: var(--p-color-success-low);
+}
+
+.scores {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: var(--p-spacing-static-sm);
+  text-align: center;
+}
+
+.score {
+  display: flex;
+  flex-direction: column;
+  gap: var(--p-spacing-static-2xs);
+  padding: var(--p-spacing-static-sm);
+  background: var(--p-color-surface);
+  border-radius: var(--p-radius-md);
+}
+
+.actions {
+  display: flex;
+  gap: var(--p-spacing-static-sm);
+  flex-wrap: wrap;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .cell {
+    transition: none;
+  }
+
+  .cell:active:not(:disabled) {
+    transform: none;
+  }
+}
+
+.menu {
+  display: flex;
+  flex-direction: column;
+  gap: var(--p-spacing-static-sm);
+}
+
+.joinForm {
+  display: flex;
+  flex-direction: column;
+  gap: var(--p-spacing-static-md);
+}
+
+.waiting {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--p-spacing-static-md);
+}
+
+.waiting > * {
+  width: 100%;
+}
+
+.waitingStatus {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--p-spacing-static-sm);
+}
+
+/* The room code is the one thing the host has to read aloud or copy — give it
+   room to breathe and lock the glyph width so it stays readable. */
+.roomCode {
+  display: block;
+  padding: var(--p-spacing-static-md);
+  text-align: center;
+  font-size: var(--p-typescale-2xl);
+  font-weight: var(--p-font-weight-bold);
+  letter-spacing: 0.2em;
+  font-variant-numeric: tabular-nums;
+  background: var(--p-color-surface);
+  border-radius: var(--p-radius-lg);
+  user-select: all;
+}
+
+.settings {
+  display: flex;
+  flex-direction: column;
+  gap: var(--p-spacing-static-md);
+}
+
+.timer {
+  display: flex;
+  flex-direction: column;
+  gap: var(--p-spacing-static-xs);
+}
+
+.timerHead {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--p-spacing-static-sm);
+}
+
+.timerTrack {
+  block-size: var(--p-spacing-static-sm);
+  background: var(--p-color-surface);
+  border-radius: var(--p-radius-full);
+  overflow: hidden;
+}
+
+.timerFill {
+  block-size: 100%;
+  background: var(--p-color-primary);
+  border-radius: var(--p-radius-full);
+  /* Matches the 100 ms tick, so the bar slides instead of stepping. */
+  transition: inline-size 100ms linear;
+}
+
+.timerFillUrgent {
+  background: var(--p-color-error);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .timerFill {
+    transition: none;
+  }
+}
