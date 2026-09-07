@@ -1,0 +1,41 @@
+/* Хрестовина для гри з телефона; на клавіатурних екранах вона зайва. */
+.pad {
+  display: grid;
+  grid-template-columns: repeat(3, 3.5rem);
+  grid-template-rows: repeat(2, 3.5rem);
+  gap: var(--p-spacing-static-xs);
+  justify-content: center;
+  margin-inline: auto;
+}
+
+.key {
+  display: grid;
+  place-items: center;
+  border: 1px solid var(--p-color-contrast-lower);
+  border-radius: var(--p-radius-md);
+  background: var(--p-color-surface);
+  color: var(--p-color-primary);
+  font-size: var(--p-typescale-md);
+  cursor: pointer;
+  touch-action: manipulation;
+  transition: background-color var(--p-duration-sm) var(--p-ease-in-out);
+}
+
+.key:active {
+  background: var(--p-color-frosted-strong);
+}
+
+.key:focus-visible {
+  outline: 2px solid var(--p-color-focus);
+  outline-offset: 2px;
+}
+
+.up {
+  grid-column: 2;
+}
+
+@media (min-width: 48rem) and (pointer: fine) {
+  .pad {
+    display: none;
+  }
+}

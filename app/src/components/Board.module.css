@@ -1,0 +1,68 @@
+/*
+ * Поля-сітки немає серед компонентів PDS, тож малюємо його самі — але виключно
+ * на дизайн-токенах системи, як і радить її документація для власного UI.
+ * Завдяки цьому поле само перемикається між світлою і темною схемою разом
+ * з рештою сторінки.
+ */
+
+.board {
+  display: grid;
+  gap: 1px;
+  width: min(100%, 32rem);
+  aspect-ratio: 1;
+  margin-inline: auto;
+  padding: var(--p-spacing-static-sm);
+  background: var(--p-color-surface);
+  border-radius: var(--p-radius-lg);
+  touch-action: none;
+}
+
+.cell {
+  border-radius: var(--p-radius-xs);
+  background: transparent;
+  transition: background-color var(--p-duration-sm) var(--p-ease-in-out);
+}
+
+.body {
+  background: var(--p-color-success-medium);
+}
+
+.head {
+  background: var(--p-color-success);
+  border-radius: var(--p-radius-sm);
+}
+
+.apple {
+  background: var(--p-color-error);
+  border-radius: var(--p-radius-full);
+}
+
+.bonus {
+  background: var(--p-color-warning);
+  border-radius: var(--p-radius-full);
+  animation: pulse var(--p-duration-lg) var(--p-ease-in-out) infinite;
+}
+
+/* Пауза й кінець партії: поле глушиться, щоб текст поверх нього читався. */
+.dimmed .cell {
+  opacity: 0.35;
+}
+
+@keyframes pulse {
+  0%,
+  100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(0.7);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .cell {
+    transition: none;
+  }
+  .bonus {
+    animation: none;
+  }
+}
