@@ -30,8 +30,21 @@
   outline-offset: 2px;
 }
 
+/* Розкладка хрестовиною задається явно — автопотік сітки зліпив би її в рядок. */
 .up {
-  grid-column: 2;
+  grid-area: 1 / 2;
+}
+
+.left {
+  grid-area: 2 / 1;
+}
+
+.down {
+  grid-area: 2 / 2;
+}
+
+.right {
+  grid-area: 2 / 3;
 }
 
 @media (min-width: 48rem) and (pointer: fine) {

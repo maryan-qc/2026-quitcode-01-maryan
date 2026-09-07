@@ -17,10 +17,22 @@
   touch-action: none;
 }
 
+/* Порожні клітинки ледь помітні: без них поле читається як сіра пляма, а не сітка. */
+/*
+ * Без переходу по background: такт гри — 75–180 мс, і будь-яка анімація
+ * кольору довша за нього лишає за зміюкою розмитий шлейф.
+ */
 .cell {
   border-radius: var(--p-radius-xs);
-  background: transparent;
-  transition: background-color var(--p-duration-sm) var(--p-ease-in-out);
+  background: var(--p-color-canvas);
+  opacity: 0.45;
+}
+
+.body,
+.head,
+.apple,
+.bonus {
+  opacity: 1;
 }
 
 .body {
@@ -59,9 +71,6 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .cell {
-    transition: none;
-  }
   .bonus {
     animation: none;
   }

@@ -123,9 +123,6 @@ export const App = () => {
               heading="Пауза"
               description="Пробіл або «Далі» повертають гру."
               dismissButton={false}
-              actionLabel="Далі"
-              actionIcon="play"
-              onAction={togglePause}
             />
           )}
 
@@ -145,13 +142,18 @@ export const App = () => {
             />
           )}
 
+          {/* Після програшу «Ще раз» уже стоїть у повідомленні — не дублюємо його кнопкою. */}
           <div className="row row--wrap">
-            <PButton type="button" icon={isPaused ? 'play' : 'pause'} onClick={togglePause} disabled={isOver}>
-              {isPaused ? 'Далі' : 'Пауза'}
-            </PButton>
-            <PButton type="button" variant="secondary" icon="refresh" onClick={playAgain}>
-              Заново
-            </PButton>
+            {!isOver && (
+              <>
+                <PButton type="button" icon={isPaused ? 'play' : 'pause'} onClick={togglePause}>
+                  {isPaused ? 'Далі' : 'Пауза'}
+                </PButton>
+                <PButton type="button" variant="secondary" icon="refresh" onClick={playAgain}>
+                  Заново
+                </PButton>
+              </>
+            )}
             <PButton type="button" variant="secondary" icon="arrow-head-left" onClick={backToMenu}>
               У меню
             </PButton>
