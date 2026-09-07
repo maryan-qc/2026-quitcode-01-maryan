@@ -1,8 +1,8 @@
 /* Хрестовина для гри з телефона; на клавіатурних екранах вона зайва. */
 .pad {
   display: grid;
-  grid-template-columns: repeat(3, 3.5rem);
-  grid-template-rows: repeat(2, 3.5rem);
+  grid-template-columns: repeat(3, 3rem);
+  grid-template-rows: repeat(2, 3rem);
   gap: var(--p-spacing-static-xs);
   justify-content: center;
   margin-inline: auto;

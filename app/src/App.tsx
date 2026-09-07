@@ -79,87 +79,121 @@ export const App = () => {
   return (
     <div className="page">
       <header className="stack stack--tight">
-        <PHeading size="xl" tag="h1">
+        <PHeading size={{ base: 'lg', s: 'xl' }} tag="h1">
           Змійка
         </PHeading>
-        <PText color="contrast-medium">
-          Класика на Porsche Design System. Керування — стрілки або WASD, пробіл ставить паузу.
-        </PText>
+        {/* Підказка потрібна в меню; під час гри вона лише з'їдає три рядки
+            висоти на телефоні, через які поле вже не влазить в екран. */}
+        {screen === 'menu' && (
+          <PText color="contrast-medium">
+            Класика на Porsche Design System. Стрілки або WASD, пробіл — пауза. На телефоні —
+            свайп по полю або хрестовина.
+          </PText>
+        )}
       </header>
 
       <PDivider />
 
       {screen === 'menu' ? (
-        <main className="stack">
-          <SettingsPanel settings={settings} onChange={updateSettings} />
-          <PButton type="button" icon="play" onClick={openGame}>
-            Грати
-          </PButton>
-          <PDivider />
-          <Scoreboard
-            scores={scores}
-            onClear={() => setScores(clearScores())}
-          />
-          <PText size="xs" color="contrast-medium">
-            Яблуко дає {POINTS_APPLE} балів. Кожне п'яте викликає золоте — воно варте {POINTS_BONUS},
-            але швидко зникає.
-          </PText>
-        </main>
-      ) : (
-        <main className="stack">
-          <div className="row row--wrap">
-            <PTag variant="primary">Бали: {game.score}</PTag>
-            <PTag>Яблука: {game.eaten}</PTag>
-            <PTag>Довжина: {game.snake.length}</PTag>
-            {best > 0 && <PTag variant="info">Рекорд: {best}</PTag>}
-            {game.bonus && <PTag variant="warning">Золоте яблуко: {game.bonus.ticksLeft}</PTag>}
-          </div>
-
-          <Board game={game} dimmed={isPaused || isOver} />
-
-          {isPaused && (
-            <PInlineNotification
-              state="info"
-              heading="Пауза"
-              description="Пробіл або «Далі» повертають гру."
-              dismissButton={false}
-            />
-          )}
-
-          {isOver && (
-            <PInlineNotification
-              state={isRecord ? 'success' : 'warning'}
-              heading={isRecord ? `Новий рекорд — ${game.score}!` : `Партію завершено — ${game.score}`}
-              description={
-                isRecord
-                  ? `Попередній найкращий результат був ${bestBefore}.`
-                  : `Зібрано яблук: ${game.eaten}. Найкращий результат — ${best}.`
-              }
-              dismissButton={false}
-              actionLabel="Ще раз"
-              actionIcon="refresh"
-              onAction={playAgain}
-            />
-          )}
-
-          {/* Після програшу «Ще раз» уже стоїть у повідомленні — не дублюємо його кнопкою. */}
-          <div className="row row--wrap">
-            {!isOver && (
-              <>
-                <PButton type="button" icon={isPaused ? 'play' : 'pause'} onClick={togglePause}>
-                  {isPaused ? 'Далі' : 'Пауза'}
-                </PButton>
-                <PButton type="button" variant="secondary" icon="refresh" onClick={playAgain}>
-                  Заново
-                </PButton>
-              </>
-            )}
-            <PButton type="button" variant="secondary" icon="arrow-head-left" onClick={backToMenu}>
-              У меню
+        <main className="layout layout--menu">
+          <div className="stack">
+            <SettingsPanel settings={settings} onChange={updateSettings} />
+            <PButton type="button" icon="play" onClick={openGame}>
+              Грати
             </PButton>
           </div>
+          <div className="stack">
+            <Scoreboard scores={scores} onClear={() => setScores(clearScores())} />
+            <PText size="xs" color="contrast-medium">
+              Яблуко дає {POINTS_APPLE} балів. Кожне п'яте викликає золоте — воно варте{' '}
+              {POINTS_BONUS}, але швидко зникає.
+            </PText>
+          </div>
+        </main>
+      ) : (
+        <main className="layout layout--game">
+          <div className="row row--wrap area-tags">
+            <PTag compact variant="primary">Бали: {game.score}</PTag>
+            <PTag compact>Яблука: {game.eaten}</PTag>
+            <PTag compact>Довжина: {game.snake.length}</PTag>
+            {best > 0 && (
+              <PTag compact variant="info">
+                Рекорд: {best}
+              </PTag>
+            )}
+            {game.bonus && (
+              <PTag compact variant="warning">
+                Золоте яблуко: {game.bonus.ticksLeft}
+              </PTag>
+            )}
+          </div>
 
-          <TouchControls onTurn={turn} />
+          <div className="area-board">
+            <Board game={game} dimmed={isPaused || isOver} onSwipe={turn} />
+          </div>
+
+          <div className="stack area-side">
+            {isPaused && (
+              <PInlineNotification
+                state="info"
+                heading="Пауза"
+                description="Пробіл або «Далі» повертають гру."
+                dismissButton={false}
+              />
+            )}
+
+            {isOver && (
+              <PInlineNotification
+                state={isRecord ? 'success' : 'warning'}
+                heading={isRecord ? `Новий рекорд — ${game.score}!` : `Партію завершено — ${game.score}`}
+                description={
+                  isRecord
+                    ? `Попередній найкращий результат був ${bestBefore}.`
+                    : `Зібрано яблук: ${game.eaten}. Найкращий результат — ${best}.`
+                }
+                dismissButton={false}
+                actionLabel="Ще раз"
+                actionIcon="refresh"
+                onAction={playAgain}
+              />
+            )}
+
+            {/* Після програшу «Ще раз» уже стоїть у повідомленні — не дублюємо його кнопкою. */}
+            <div className="row row--wrap">
+              {!isOver && (
+                <>
+                  <PButton
+                    type="button"
+                    compact={{ base: true, s: false }}
+                    icon={isPaused ? 'play' : 'pause'}
+                    onClick={togglePause}
+                  >
+                    {isPaused ? 'Далі' : 'Пауза'}
+                  </PButton>
+                  <PButton
+                    type="button"
+                    compact={{ base: true, s: false }}
+                    variant="secondary"
+                    icon="refresh"
+                    onClick={playAgain}
+                  >
+                    Заново
+                  </PButton>
+                </>
+              )}
+              <PButton
+                type="button"
+                compact={{ base: true, s: false }}
+                variant="secondary"
+                icon="arrow-head-left"
+                onClick={backToMenu}
+              >
+                У меню
+              </PButton>
+            </div>
+
+            <TouchControls onTurn={turn} />
+          </div>
         </main>
       )}
     </div>

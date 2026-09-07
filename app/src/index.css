@@ -10,6 +10,8 @@ body {
   background: var(--p-color-canvas);
   color: var(--p-color-primary);
   min-height: 100dvh;
+  /* Щоб свайп по полю не тягнув сторінку і не викликав pull-to-refresh. */
+  overscroll-behavior: none;
 }
 
 .page {
@@ -19,6 +21,85 @@ body {
   max-width: 42rem;
   margin-inline: auto;
   padding: var(--p-spacing-fluid-md) var(--p-spacing-fluid-sm) var(--p-spacing-fluid-xl);
+}
+
+/*
+ * З 60rem екран уже вміщає дві колонки: на телефоні все лишається однією
+ * стрічкою, на ноуті поле й керування стають поруч, без порожнього простору
+ * праворуч і без прокрутки під час гри.
+ */
+.layout {
+  display: grid;
+  gap: var(--p-spacing-fluid-md);
+  align-items: start;
+}
+
+.layout--game {
+  grid-template-areas:
+    'tags'
+    'board'
+    'side';
+}
+
+.area-tags {
+  grid-area: tags;
+}
+
+.area-board {
+  grid-area: board;
+}
+
+.area-side {
+  grid-area: side;
+}
+
+/*
+ * Низький екран — це або маленький телефон, або будь-який телефон у
+ * ландшафті. Там кожен піксель висоти на рахунку, тож тиснемо відступи:
+ * інакше поле виїжджає за екран і в гру доводиться грати з прокруткою.
+ */
+@media (max-height: 46rem) {
+  .page {
+    gap: var(--p-spacing-static-sm);
+    padding-block: var(--p-spacing-static-sm);
+  }
+
+  .layout,
+  .stack {
+    gap: var(--p-spacing-static-sm);
+  }
+}
+
+@media (min-width: 60rem) {
+  .page {
+    max-width: 66rem;
+  }
+
+  .layout--menu {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  }
+}
+
+/*
+ * Дві колонки в грі вмикаються не лише на широкому екрані, а й на будь-якому
+ * ландшафті від 45rem: телефон боком має вдосталь ширини і катастрофічно
+ * мало висоти, тож поле і керування там мають стояти поруч, а не стовпчиком.
+ */
+@media (min-width: 60rem), (min-width: 45rem) and (orientation: landscape) {
+  .layout--game {
+    grid-template-columns: minmax(0, auto) minmax(17rem, 22rem);
+    /* Поле займає обидва рядки, тож бічній колонці треба явно сказати
+       триматись верху — інакше вона розпливеться по всій висоті поля. */
+    grid-template-rows: auto 1fr;
+    grid-template-areas:
+      'board tags'
+      'board side';
+  }
+
+  .area-tags,
+  .area-side {
+    align-self: start;
+  }
 }
 
 .stack {
