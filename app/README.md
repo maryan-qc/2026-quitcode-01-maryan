@@ -1,32 +1,62 @@
-# React + TypeScript + Vite
+# Змійка
 
-This template provides a minimal setup to get React working in Vite with HMR and some Oxlint rules.
+Класична змійка, зібрана вайб-кодингом на **Porsche Design System v4.6.0**.
+Домашнє завдання воркшопу 1 курсу QuitCode «Сучасна розробка з агентним AI».
 
-Currently, two official plugins are available:
+## Що вміє
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+- **Налаштування партії** — темп (180 / 120 / 75 мс на крок), розмір поля від 10
+  до 30 клітинок, режим «проходити крізь стіни», тема (системна / світла / темна).
+- **Гра** — керування стрілками або WASD (працює і в українській розкладці),
+  пробіл ставить паузу, на вузьких екранах є екранна хрестовина.
+- **Золоте яблуко** — кожне п'яте звичайне яблуко викликає бонусне: воно варте
+  50 балів замість 10, але зникає через 45 тіків.
+- **Рекорди** — п'ятірка найкращих партій у `localStorage`, з темпом, розміром
+  поля і датою.
 
-## React Compiler
+## Стек
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+| Що | Чим |
+|---|---|
+| Каркас | Vite 8 + React 19 + TypeScript |
+| Дизайн-система | `@porsche-design-system/components-react` 4.6.0 |
+| Стан | React state, налаштування й рекорди — у `localStorage` |
 
-## Expanding the Oxlint configuration
+UI зібрано з компонентів PDS: `PHeading`, `PText`, `PFieldset`, `PSegmentedControl`,
+`PInputNumber`, `PSwitch`, `PButton`, `PButtonPure`, `PTag`, `PTable`, `PDivider`,
+`PInlineNotification`. Ігрове поле й екранна хрестовина — власні компоненти, але
+на дизайн-токенах системи (`--p-color-*`, `--p-radius-*`, `--p-spacing-*`), як і
+рекомендує документація PDS для UI, якого немає в бібліотеці. Завдяки цьому вони
+самі перемикаються між світлою і темною схемою разом з рештою сторінки.
 
-If you are developing a production application, we recommend enabling type-aware lint rules by installing `oxlint-tsgolint` and editing `.oxlintrc.json`:
+## Команди
 
-```json
-{
-  "$schema": "./node_modules/oxlint/configuration_schema.json",
-  "plugins": ["react", "typescript", "oxc"],
-  "options": {
-    "typeAware": true
-  },
-  "rules": {
-    "react/rules-of-hooks": "error",
-    "react/only-export-components": ["warn", { "allowConstantExport": true }]
-  }
-}
+```bash
+npm install
+npm run dev          # http://localhost:5173
+npm run build        # tsc -b && vite build
+npm run build:pages  # збірка під GitHub Pages (base=/2026-quitcode-01-maryan/)
 ```
 
-See the [Oxlint rules documentation](https://oxc.rs/docs/guide/usage/linter/rules) for the full list of rules and categories.
+Потрібен Node 22+.
+
+## Структура
+
+```
+src/
+  game/
+    engine.ts        чисті функції правил гри: крок, повороти, зіткнення, яблука
+    useSnakeGame.ts  ігровий цикл, клавіатура, пауза
+    settings.ts      налаштування + localStorage
+    scores.ts        таблиця рекордів + localStorage
+  components/
+    Board.tsx        поле на дизайн-токенах PDS
+    SettingsPanel.tsx  форма налаштувань на PDS
+    Scoreboard.tsx   таблиця рекордів на PTable
+    TouchControls.tsx  хрестовина для дотику
+  App.tsx            екрани «меню» і «гра»
+```
+
+Правила гри навмисно винесені в `engine.ts` окремо від React: їх можна
+проганяти без браузера, чим і скористались під час перевірки — див.
+[`docs/vibe-notes.md`](../docs/vibe-notes.md).

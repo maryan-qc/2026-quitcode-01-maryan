@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import {
   PFieldset,
   PInputNumber,
@@ -32,8 +32,9 @@ const SCHEMES: { value: Scheme; label: string }[] = [
 export const SettingsPanel = ({ settings, onChange }: SettingsPanelProps) => {
   // Поле розміру тримає власний чернетковий рядок: поки користувач друкує,
   // проміжне значення («1» на шляху до «15») ще не має потрапляти в гру.
+  // Синхронізувати його з settings ефектом не треба — валідне введення
+  // одразу йде в обидва боки, а хибне відкочується на blur.
   const [draft, setDraft] = useState(String(settings.boardSize));
-  useEffect(() => setDraft(String(settings.boardSize)), [settings.boardSize]);
 
   const parse = (value: string) => {
     const parsed = Number(value);
