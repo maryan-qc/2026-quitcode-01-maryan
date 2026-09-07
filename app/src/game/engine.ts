@@ -122,7 +122,11 @@ export const step = (game: Game, passThroughWalls: boolean): Game => {
   if (ateApple) score += POINTS_APPLE;
   if (ateBonus) score += POINTS_BONUS;
 
-  const apple = ateApple ? (randomFreeCell(game.size, snake) ?? game.apple) : game.apple;
+  // Клітинку активного золотого яблука теж вважаємо зайнятою: інакше нове
+  // звичайне яблуко могло лягти рівно під нього, зникнути з очей (поле малює
+  // бонус поверх) і на наступному ході нарахувати обидві премії разом.
+  const occupied = game.bonus ? [...snake, game.bonus.at] : snake;
+  const apple = ateApple ? (randomFreeCell(game.size, occupied) ?? game.apple) : game.apple;
 
   let bonus = game.bonus;
   if (ateBonus) {

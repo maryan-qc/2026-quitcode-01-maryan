@@ -68,6 +68,21 @@ export const useSnakeGame = (settings: Settings, onGameOver: (game: Game) => voi
     const onKeyDown = (event: KeyboardEvent) => {
       if (event.metaKey || event.ctrlKey || event.altKey) return;
 
+      /*
+       * Слухач висить на window, тож без цієї перевірки стрілки в полі
+       * «Розмір поля» діставались би зміюці, а preventDefault нижче ще й
+       * блокував би рідну зміну числа з клавіатури. composedPath потрібен
+       * тому, що справжній <input> у PDS живе всередині shadow DOM.
+       */
+      const typing = event.composedPath().some(
+        (node) =>
+          node instanceof HTMLInputElement ||
+          node instanceof HTMLTextAreaElement ||
+          node instanceof HTMLSelectElement ||
+          (node instanceof HTMLElement && node.isContentEditable)
+      );
+      if (typing) return;
+
       const direction = KEY_TO_DIRECTION[event.key] ?? KEY_TO_DIRECTION[event.key.toLowerCase()];
       if (direction) {
         event.preventDefault();

@@ -25,6 +25,12 @@ export const TouchControls = ({ onTurn }: TouchControlsProps) => (
           event.preventDefault();
           onTurn(direction);
         }}
+        // Активація з клавіатури не породжує pointer-події. У такого click
+        // detail === 0 — саме цим він відрізняється від мишиного, який тут
+        // дав би другий поворот поверх уже обробленого pointerdown.
+        onClick={(event) => {
+          if (event.detail === 0) onTurn(direction);
+        }}
       >
         {glyph}
       </button>
